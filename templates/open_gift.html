@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You've Received a Gift!</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7 text-center">
+                
+                {% if is_locked %}
+                <!-- LOCKED STATE -->
+                <div class="card shadow-sm border-0 p-5 bg-white rounded-3">
+                    <div class="mb-3 fs-1">⏳</div>
+                    <h2 class="fw-bold text-primary mb-2">Gift Scheduled!</h2>
+                    <p class="text-muted mb-3">This gift from <strong>{{ gift.sender_name }}</strong> is locked and waiting for the special moment.</p>
+                    <div class="alert alert-warning py-3 fw-bold">
+                        Unlocks on: {{ scheduled_time.replace('T', ' ') }}
+                    </div>
+                    <p class="text-muted small mb-0">Check back then to unwrap it!</p>
+                </div>
+                
+                {% else %}
+                <!-- UNLOCKED / READY STATE -->
+                <!-- STEP 1: Wrapped Box View -->
+                <div id="wrapped-view" class="card shadow-sm border-0 p-5 bg-white rounded-3">
+                    <div class="mb-3 fs-1">
+                        {% if gift.wrapping_style == 'birthday' %} 🎂
+                        {% elif gift.wrapping_style == 'festive' %} 🎄
+                        {% elif gift.wrapping_style == 'love' %} 💖
+                        {% else %} 🎁 {% endif %}
+                    </div>
+                    <h2 class="fw-bold text-primary mb-2">A Gift for You, {{ gift.recipient_name }}!</h2>
+                    <p class="text-muted mb-4"><strong>{{ gift.sender_name }}</strong> has sent you a special digital gift.</p>
+                    <button onclick="unwrapGift()" class="btn btn-primary btn-lg px-5">✨ Unwrap Your Gift</button>
+                </div>
+
+                <!-- STEP 2: Unwrapped Gift View (Hidden by default) -->
+                <div id="unwrapped-view" class="card shadow-sm border-0 p-4 bg-white rounded-3 text-start" style="display: none;">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-success mb-2">Gift Unwrapped Successfully!</span>
+                        <h3 class="fw-bold text-dark">From {{ gift.sender_name }}</h3>
+                    </div>
+
+                    <!-- Personal Message Box -->
+                    <div class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-primary">
+                        <p class="mb-0 fst-italic text-dark">"{{ gift.personal_message }}"</p>
+                    </div>
+
+                    <!-- Product Card Inside -->
+                    <div class="card border mb-4">
+                        <div class="row g-0 align-items-center">
+                            <div class="col-md-4 text-center p-3">
+                                <img src="{{ gift.product.image_url if gift.product.image_url and gift.product.image_url != 'nan' else 'https://via.placeholder.com/150?text=Gift' }}" 
+                                     class="img-fluid rounded" alt="Gift Image" style="max-height: 140px; object-fit: contain;">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <span class="badge bg-secondary mb-1">{{ gift.product.brand }}</span>
+                                    <h5 class="card-title fs-6 text-dark">{{ gift.product.title }}</h5>
+                                    <p class="card-text text-success fw-bold mb-0">{{ gift.product.currency or '$' }} {{ gift.product.final_price }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Claim Form -->
+                    <form action="{{ url_for('claim_gift', gift_token=gift_token) }}" method="POST">
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Claim This Gift</button>
+                    </form>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function unwrapGift() {
+            document.getElementById('wrapped-view').style.display = 'none';
+            document.getElementById('unwrapped-view').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
