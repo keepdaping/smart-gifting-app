@@ -1,35 +1,98 @@
+"""Gift recommendation logic and a small command-line example."""
+
+import re
+
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# 1. Load dataset
-df = pd.read_excel("amazon-products2.xlsx")
-df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+from gift_data import build_recommendation_model, load_product_catalog
 
-# Handle missing text values by filling with empty strings
-df['gift_text'] = df['gift_text'].fillna('')
+FOOTBALL_QUERY_PATTERN = re.compile(
+    r"\b(?:bournemouth|arsenal|jersey|kit|football|soccer)\b",
+    flags=re.IGNORECASE,
+)
+TEAM_QUERY_PATTERN = re.compile(r"\b(?:bournemouth|arsenal)\b", re.IGNORECASE)
+FOOTBALL_QUERY_EXPANSION = "football soccer team jersey shirt uniform kit fan shop"
+FOOTBALL_CONTEXT_PATTERN = re.compile(
+    r"\b(?:football|soccer)\b",
+    re.IGNORECASE,
+)
+APPAREL_PATTERN = re.compile(r"\b(?:jersey|shirt|uniform|apparel|sportswear)\b", re.IGNORECASE)
+JERSEY_PATTERN = re.compile(r"\bjersey\b", re.IGNORECASE)
+KIT_PATTERN = re.compile(r"\bkit\b", re.IGNORECASE)
+IRRELEVANT_APPAREL_PATTERN = re.compile(
+    r"\b(?:pet|helmet|protective|towel)\b",
+    flags=re.IGNORECASE,
+)
 
-# 2. Initialize TF-IDF Vectorizer
-vectorizer = TfidfVectorizer(stop_words='english')
-tfidf_matrix = vectorizer.fit_transform(df['gift_text'])
 
-def recommend_gifts(user_query, top_n=6):
-    # Transform user query into vector
-    query_vector = vectorizer.transform([user_query])
-    
-    # Calculate cosine similarity between query and all products
+def recommend_gifts(
+    user_query: str,
+    product_df: pd.DataFrame,
+    vectorizer,
+    tfidf_matrix,
+    top_n: int = 6,
+):
+    """Return relevant products, restricting football intent to fan apparel."""
+    query_text = (user_query or "").strip()
+    if not query_text:
+        return []
+
+    football_intent = bool(FOOTBALL_QUERY_PATTERN.search(query_text))
+    if football_intent:
+        query_text = f"{query_text} {FOOTBALL_QUERY_EXPANSION}"
+
+    query_vector = vectorizer.transform([query_text])
     similarity_scores = cosine_similarity(query_vector, tfidf_matrix).flatten()
-    
-    # Get top matching indices
-    top_indices = similarity_scores.argsort()[::-1][:top_n]
-    
-    # Build results dataframe
-    results = df.iloc[top_indices].copy()
-    results['similarity_score'] = similarity_scores[top_indices]
-    
-    return results[['title', 'brand', 'final_price', 'similarity_score']]
 
-# Test query
-test_query = "birthday gift for my brother who loves running"
-print(f"Testing recommendations for query: '{test_query}'\n")
-print(recommend_gifts(test_query))
+    if football_intent:
+        titles = product_df.get("title", pd.Series("", index=product_df.index)).fillna("").astype(str)
+        categories = product_df.get("categories", pd.Series("", index=product_df.index)).fillna("").astype(str)
+        requested_teams = TEAM_QUERY_PATTERN.findall(user_query)
+        eligible_indices = [
+            index
+            for index, (title, category) in enumerate(zip(titles, categories))
+            if (
+                (
+                    FOOTBALL_CONTEXT_PATTERN.search(f"{title} {category}")
+                    and (APPAREL_PATTERN.search(title) or KIT_PATTERN.search(title))
+                )
+                or (JERSEY_PATTERN.search(title) and "fan shop" in category.lower())
+            )
+            and all(team.lower() in f"{title} {category}".lower() for team in requested_teams)
+            and not IRRELEVANT_APPAREL_PATTERN.search(f"{title} {category}")
+        ]
+        if not eligible_indices:
+            return []
+        top_indices = sorted(
+            eligible_indices,
+            key=lambda index: similarity_scores[index],
+            reverse=True,
+        )[:top_n]
+    else:
+        top_indices = similarity_scores.argsort()[::-1][:top_n]
+
+    results = product_df.iloc[top_indices].copy()
+    results["similarity_score"] = similarity_scores[top_indices]
+    results["product_id"] = top_indices
+    return results.to_dict(orient="records")
+
+
+def main():
+    product_df = load_product_catalog()
+    vectorizer, tfidf_matrix = build_recommendation_model(product_df)
+    test_query = "birthday gift for my brother who loves running"
+    print(f"Testing recommendations for query: '{test_query}'\n")
+    recommendations = recommend_gifts(
+        test_query,
+        product_df,
+        vectorizer,
+        tfidf_matrix,
+        top_n=6,
+    )
+    for recommendation in recommendations:
+        print(recommendation)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,17 +1,17 @@
-import pandas as pd
+"""Inspect the product catalogue to verify the fields used by the app."""
 
-# Load the dataset
-file_name = "amazon-products2.xlsx"
-df = pd.read_excel(file_name)
+from gift_data import load_product_catalog
 
-# Drop any columns that start with 'Unnamed'
-df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-print("Dataset loaded successfully!")
-print(f"Cleaned rows and columns: {df.shape}")
-print("\nActive columns we are keeping:")
-print(df.columns.tolist())
+def main():
+    dataframe = load_product_catalog()
+    print("Dataset loaded successfully!")
+    print(f"Cleaned rows and columns: {dataframe.shape}")
+    print("\nActive columns we are keeping:")
+    print(dataframe.columns.tolist())
+    print("\nFirst row sample:")
+    print(dataframe[["title", "brand", "final_price"]].head(1))
 
-# Show first row sample
-print("\nFirst row sample:")
-print(df[['title', 'brand', 'final_price']].head(1))
+
+if __name__ == "__main__":
+    main()
