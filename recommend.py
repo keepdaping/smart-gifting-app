@@ -1,5 +1,6 @@
-"""Gift recommendation logic and a small command-line example."""
+"""Rank catalogue gifts, including targeted football-apparel recommendations."""
 
+import json
 import re
 
 import pandas as pd
@@ -24,6 +25,20 @@ IRRELEVANT_APPAREL_PATTERN = re.compile(
     r"\b(?:pet|helmet|protective|towel)\b",
     flags=re.IGNORECASE,
 )
+
+
+def _get_category_label(category_value):
+    """Return the first catalogue category as a compact badge label."""
+    if isinstance(category_value, list):
+        return str(category_value[0]) if category_value else "Gift idea"
+    if not isinstance(category_value, str) or not category_value.strip():
+        return "Gift idea"
+
+    try:
+        categories = json.loads(category_value)
+    except json.JSONDecodeError:
+        return category_value
+    return str(categories[0]) if isinstance(categories, list) and categories else "Gift idea"
 
 
 def recommend_gifts(
@@ -75,10 +90,15 @@ def recommend_gifts(
     results = product_df.iloc[top_indices].copy()
     results["similarity_score"] = similarity_scores[top_indices]
     results["product_id"] = top_indices
+    if "categories" in results:
+        results["category_label"] = results["categories"].map(_get_category_label)
+    else:
+        results["category_label"] = "Gift idea"
     return results.to_dict(orient="records")
 
 
 def main():
+    """Print sample recommendations to demonstrate the ranking engine."""
     product_df = load_product_catalog()
     vectorizer, tfidf_matrix = build_recommendation_model(product_df)
     test_query = "birthday gift for my brother who loves running"

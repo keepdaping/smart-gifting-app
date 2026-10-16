@@ -1,62 +1,156 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Digital Gifting App</title>
-    <!-- Bootstrap 5 CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+{% extends "base.html" %}
 
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h1 class="fw-bold text-primary">🎁 Smart Digital Gifting App</h1>
-            <p class="text-muted">Find and send the perfect gift using AI-powered recommendations.</p>
-        </div>
+{% block title %}Find a Gift | Smart Gifting{% endblock %}
 
-        <!-- Search Bar Form -->
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-8">
-                <form method="POST" class="card shadow-sm p-4 bg-white rounded-3">
-                    <div class="mb-3">
-                        <label for="query" class="form-label fw-semibold">What kind of gift are you looking for?</label>
-                        <input type="text" class="form-control form-control-lg" id="query" name="query" 
-                               value="{{ user_query }}" placeholder="e.g. Birthday gift for my brother who loves running" required>
+{% block head %}
+    <style>
+        .home-hero { padding: 4.5rem 0 3.5rem; }
+        .hero-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            padding: clamp(1.5rem, 5vw, 4rem);
+            background: #e6efdf;
+        }
+        .hero-panel::after {
+            position: absolute;
+            right: -38px;
+            bottom: -88px;
+            width: 230px;
+            height: 230px;
+            border: 32px solid rgba(36, 91, 71, .08);
+            border-radius: 50%;
+            content: "";
+            pointer-events: none;
+        }
+        .hero-copy, .search-panel { position: relative; z-index: 1; }
+        .search-panel { border-radius: 16px; }
+        .prompt-hint { color: var(--ink-soft); font-size: .85rem; }
+        .product-card {
+            overflow: hidden;
+            height: 100%;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 5px 18px rgba(24, 55, 47, .06);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 28px rgba(24, 55, 47, .12);
+        }
+        .product-image-wrap {
+            display: grid;
+            aspect-ratio: 4 / 3;
+            place-items: center;
+            overflow: hidden;
+            margin: 12px 12px 0;
+            border-radius: 10px;
+            background: #f2f5ef;
+        }
+        .product-image-wrap img { width: 100%; height: 100%; object-fit: contain; padding: 1rem; }
+        .badge-category { color: #315948; background: #e7f0df; }
+        .badge-brand { color: #774d37; background: #f6e9df; }
+        .product-price { color: var(--leaf-deep); font-size: 1.15rem; font-weight: 700; }
+        .section-kicker { color: var(--ink-soft); font-size: .9rem; }
+        @media (max-width: 767.98px) {
+            .home-hero { padding: 2rem 0 2.5rem; }
+            .hero-panel { border-radius: 16px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .product-card { transition: none; }
+            .product-card:hover { transform: none; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <section class="home-hero">
+        <div class="container">
+            <div class="hero-panel">
+                <div class="row align-items-center g-4 g-lg-5">
+                    <div class="col-lg-5 hero-copy">
+                        <p class="eyebrow mb-3">A little thought goes a long way</p>
+                        <h1 class="display-heading mb-3">Find a gift that feels like them.</h1>
+                        <p class="text-muted mb-0">Describe who you’re shopping for and what they love. We’ll find a thoughtful place to start.</p>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100">Find Smart Recommendations</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Display Recommendations -->
-        {% if recommendations %}
-            <h3 class="mb-4 text-center">Top 6 Gift Recommendations</h3>
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for item in recommendations %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0">
-                        {% if item.image_url and item.image_url != 'nan' %}
-                            <img src="{{ item.image_url }}" class="card-img-top p-3" alt="Gift Image" style="height: 200px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/200?text=Gift+Image'">
-                        {% else %}
-                            <img src="https://via.placeholder.com/200?text=Gift+Image" class="card-img-top p-3" alt="Gift Image" style="height: 200px; object-fit: contain;">
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <span class="badge bg-secondary mb-2 align-self-start">{{ item.brand }}</span>
-                            <h5 class="card-title fs-6 text-dark">{{ item.title }}</h5>
-                            <p class="card-text text-success fw-bold mt-auto">{{ item.currency or '$' }} {{ item.final_price }}</p>
-                            <a href="{{ url_for('select_gift', product_id=item.product_id) }}" class="btn btn-outline-primary btn-sm mt-2">Select Gift</a>
-                        </div>
+                    <div class="col-lg-7">
+                        <form method="POST" class="surface search-panel p-3 p-sm-4" id="recommendation-form">
+                            <label for="query" class="form-label mb-2">What are they into?</label>
+                            <input type="search" class="form-control form-control-lg mb-3" id="query" name="query"
+                                   value="{{ user_query }}" placeholder="A birthday gift for my brother who loves running" required>
+                            <p class="prompt-hint mb-3">Try: “a cozy housewarming gift” or “something creative for a young artist”</p>
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="recommendation-submit">
+                                <span class="submit-label">Find smart recommendations</span>
+                                <span class="submit-loading d-none" aria-hidden="true">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>Finding thoughtful picks...
+                                </span>
+                            </button>
+                            <div class="visually-hidden" id="search-status" role="status" aria-live="polite"></div>
+                        </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    {% if recommendations %}
+        <section class="container pb-5" aria-labelledby="recommendations-title">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-2 mb-4">
+                <div>
+                    <p class="eyebrow mb-2">Made for your search</p>
+                    <h2 id="recommendations-title" class="h3 fw-bold mb-1">Gift ideas to explore</h2>
+                    <p class="section-kicker mb-0">A few promising matches for “{{ user_query }}”</p>
+                </div>
+                <span class="small text-muted">{{ recommendations|length }} recommendations</span>
+            </div>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 g-lg-4">
+                {% for item in recommendations %}
+                    <div class="col">
+                        <article class="product-card d-flex flex-column">
+                            <div class="product-image-wrap">
+                                {% if item.image_url and item.image_url != 'nan' %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy"
+                                         onerror="this.onerror=null;this.src='https://placehold.co/480x360/f2f5ef/557067?text=Gift+idea'">
+                                {% else %}
+                                    <img src="https://placehold.co/480x360/f2f5ef/557067?text=Gift+idea" alt="Gift idea" loading="lazy">
+                                {% endif %}
+                            </div>
+                            <div class="d-flex flex-column flex-grow-1 p-3 p-lg-4">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <span class="badge rounded-pill badge-category">{{ item.category_label }}</span>
+                                    {% if item.brand and item.brand != 'nan' %}
+                                        <span class="badge rounded-pill badge-brand">{{ item.brand }}</span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="h6 fw-bold lh-base mb-3">{{ item.title }}</h3>
+                                <p class="product-price mt-auto mb-3">{{ item.currency or '$' }} {{ item.final_price }}</p>
+                                <a href="{{ url_for('select_gift', product_id=item.product_id) }}" class="btn btn-primary w-100">Choose this gift</a>
+                            </div>
+                        </article>
+                    </div>
                 {% endfor %}
             </div>
-        {% elif user_query %}
-            <div class="alert alert-warning text-center" role="alert">
-                No matching gifts found. Try a different description!
+        </section>
+    {% elif user_query %}
+        <section class="container pb-5" aria-live="polite">
+            <div class="surface p-4 p-md-5 text-center">
+                <p class="eyebrow mb-2">No matches yet</p>
+                <h2 class="h4 fw-bold">Let’s try another angle.</h2>
+                <p class="text-muted mb-0">Try a hobby, occasion, or a few details about the person.</p>
             </div>
-        {% endif %}
-    </div>
+        </section>
+    {% endif %}
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+    <script>
+        document.getElementById("recommendation-form").addEventListener("submit", function () {
+            const button = document.getElementById("recommendation-submit");
+            button.disabled = true;
+            button.querySelector(".submit-label").classList.add("d-none");
+            button.querySelector(".submit-loading").classList.remove("d-none");
+            document.getElementById("search-status").textContent = "Finding thoughtful gift recommendations.";
+        });
+    </script>
+{% endblock %}

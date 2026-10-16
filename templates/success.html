@@ -1,29 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gift Ready to Send</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+{% extends "base.html" %}
 
-    <div class="container py-5 text-center">
-        <div class="card shadow-sm border-0 p-5 bg-white rounded-3 mx-auto" style="max-width: 600px;">
-            <div class="mb-3 text-success fs-1">🎉</div>
-            <h2 class="fw-bold text-primary mb-3">Gift Created Successfully!</h2>
-            <p class="text-muted mb-4">Your personalized gift for <strong>{{ gift.recipient_name }}</strong> has been wrapped and is ready to share.</p>
-            
-            <div class="alert alert-info py-3 mb-4">
-                <em>Share this unique gift link with your recipient:</em><br>
-                <a href="{{ url_for('open_gift', gift_token=gift_token, _external=True) }}" target="_blank" class="fw-bold text-break">
-                    {{ url_for('open_gift', gift_token=gift_token, _external=True) }}
-                </a>
+{% block title %}Gift Ready to Share | Smart Gifting{% endblock %}
+
+{% block head %}
+    <style>
+        .success-wrap { max-width: 760px; }
+        .success-mark {
+            display: grid;
+            width: 68px;
+            height: 68px;
+            place-items: center;
+            border-radius: 20px;
+            color: var(--leaf-deep);
+            background: #e3efcf;
+            font-size: 1.8rem;
+        }
+        .share-panel { background: #edf3e9; border-radius: 12px; }
+        .share-url { overflow-wrap: anywhere; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <section class="container success-wrap py-5 py-md-6">
+        <div class="surface p-4 p-md-5">
+            <div class="success-mark mb-4" aria-hidden="true">✓</div>
+            <p class="eyebrow mb-2">Ready to share</p>
+            <h1 class="display-heading mb-3">Your gift is ready.</h1>
+            <p class="text-muted fs-5 mb-4">Your gift for <strong>{{ gift.recipient_name }}</strong> is wrapped and waiting for its moment.</p>
+
+            <div class="share-panel p-3 p-md-4 mb-4">
+                <label for="gift-link" class="form-label">Private gift link</label>
+                <div class="input-group">
+                    <input type="text" id="gift-link" class="form-control share-url" readonly value="{{ url_for('open_gift', gift_token=gift_token, _external=True) }}" aria-label="Shareable gift link">
+                    <button type="button" id="copy-link" class="btn btn-primary">Copy link</button>
+                </div>
+                <p id="copy-status" class="small text-muted mt-2 mb-0" aria-live="polite">Share this link directly with {{ gift.recipient_name }}.</p>
             </div>
 
-            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">Create Another Gift</a>
+            <a href="{{ url_for('open_gift', gift_token=gift_token, _external=True) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary me-sm-2 mb-2 mb-sm-0">Preview gift</a>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Create another gift</a>
         </div>
-    </div>
+    </section>
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+    <script>
+        document.getElementById("copy-link").addEventListener("click", async function () {
+            const linkInput = document.getElementById("gift-link");
+            const status = document.getElementById("copy-status");
+            try {
+                await navigator.clipboard.writeText(linkInput.value);
+                status.textContent = "Gift link copied. Send it to " + {{ gift.recipient_name|tojson }} + ".";
+            } catch (error) {
+                linkInput.select();
+                status.textContent = "Select and copy the link above to share it.";
+            }
+        });
+    </script>
+{% endblock %}

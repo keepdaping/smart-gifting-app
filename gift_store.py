@@ -1,4 +1,4 @@
-"""SQLite helpers for storing pending and active gifts."""
+"""SQLite persistence operations for pending gifts and their lifecycle."""
 
 from __future__ import annotations
 

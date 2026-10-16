@@ -1,4 +1,4 @@
-"""Flask application for the smart gifting workflow."""
+"""Flask routes for gift search, creation, delivery, claiming, and USSD."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ init_database()
 
 
 def build_gift_payload(product_row):
-    """Convert a product row to the JSON payload stored in the pending gift table."""
+    """Serialize a selected product row for pending-gift storage."""
     return product_row.to_dict()
 
 

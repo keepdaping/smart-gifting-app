@@ -1,71 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalize Your Gift</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+{% extends "base.html" %}
 
-    <div class="container py-5">
+{% block title %}Personalize Your Gift | Smart Gifting{% endblock %}
+
+{% block content %}
+    <section class="container py-4 py-md-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0 p-4 bg-white rounded-3">
-                    <h2 class="fw-bold text-primary mb-4">🎁 Personalize Your Gift</h2>
+            <div class="col-12 col-lg-9 col-xl-8">
+                <a href="{{ url_for('index') }}" class="small text-decoration-none">&larr; Back to recommendations</a>
+                <div class="surface mt-3 p-3 p-sm-4 p-lg-5">
+                    <div class="mb-4">
+                        <p class="eyebrow mb-2">Make it personal</p>
+                        <h1 class="h2 fw-bold mb-2">Set up your gift</h1>
+                        <p class="text-muted mb-0">Add a note and choose how it arrives.</p>
+                    </div>
 
-                    <!-- Selected Product Summary -->
-                    <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
-                        <img src="{{ product.image_url if product.image_url and product.image_url != 'nan' else 'https://via.placeholder.com/100?text=Gift' }}" 
-                             alt="Product" style="width: 80px; height: 80px; object-fit: contain;" class="me-3 bg-white p-1 rounded">
-                        <div>
-                            <h5 class="fs-6 mb-1 text-dark">{{ product.title }}</h5>
-                            <p class="text-success fw-bold mb-0">{{ product.currency or '$' }} {{ product.final_price }}</p>
+                    <div class="d-flex align-items-center gap-3 rounded-3 p-3 mb-4" style="background: #f2f5ef;">
+                        <div class="flex-shrink-0 rounded-3 bg-white p-2" style="width: 88px; height: 88px;">
+                            <img src="{{ product.image_url if product.image_url and product.image_url != 'nan' else 'https://placehold.co/120x120/f2f5ef/557067?text=Gift' }}"
+                                 alt="{{ product.title }}" class="w-100 h-100" style="object-fit: contain;"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/120x120/f2f5ef/557067?text=Gift'">
+                        </div>
+                        <div class="min-w-0">
+                            <p class="small text-muted mb-1">Your selected gift</p>
+                            <h2 class="h6 fw-bold mb-1">{{ product.title }}</h2>
+                            <p class="fw-bold mb-0" style="color: var(--leaf-deep);">{{ product.currency or '$' }} {{ product.final_price }}</p>
                         </div>
                     </div>
 
-                    <!-- Personalization Form -->
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="recipient_name" class="form-label fw-semibold">Recipient's Name</label>
-                            <input type="text" class="form-control" id="recipient_name" name="recipient_name" placeholder="e.g. David" required>
+                    <form method="POST" class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="recipient_name" class="form-label">Recipient’s name</label>
+                            <input type="text" class="form-control" id="recipient_name" name="recipient_name" placeholder="e.g. David" autocomplete="name" required>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="sender_name" class="form-label fw-semibold">Your Name (Sender)</label>
-                            <input type="text" class="form-control" id="sender_name" name="sender_name" placeholder="e.g. Sarah" required>
+                        <div class="col-12 col-md-6">
+                            <label for="sender_name" class="form-label">Your name</label>
+                            <input type="text" class="form-control" id="sender_name" name="sender_name" placeholder="e.g. Sarah" autocomplete="name" required>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="personal_message" class="form-label fw-semibold">Personal Message</label>
+                        <div class="col-12">
+                            <label for="personal_message" class="form-label">Personal message</label>
                             <textarea class="form-control" id="personal_message" name="personal_message" rows="3" placeholder="Write a thoughtful message..." required></textarea>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="wrapping_style" class="form-label fw-semibold">Choose Digital Wrapping Theme</label>
+                        <div class="col-12 col-md-6">
+                            <label for="wrapping_style" class="form-label">Digital wrapping theme</label>
                             <select class="form-select" id="wrapping_style" name="wrapping_style">
-                                <option value="birthday">🎂 Birthday Celebration</option>
-                                <option value="festive">🎄 Festive / Holiday</option>
-                                <option value="love">💖 Romance & Love</option>
-                                <option value="sleek">✨ Sleek & Minimalist</option>
+                                <option value="birthday">Birthday celebration</option>
+                                <option value="festive">Festive / holiday</option>
+                                <option value="love">Romance &amp; love</option>
+                                <option value="sleek">Sleek &amp; minimalist</option>
                             </select>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="scheduled_time" class="form-label fw-semibold">Schedule Unlock Time (Optional)</label>
+                        <div class="col-12 col-md-6">
+                            <label for="scheduled_time" class="form-label">Unlock time <span class="fw-normal text-muted">(optional)</span></label>
                             <input type="datetime-local" class="form-control" id="scheduled_time" name="scheduled_time">
-                            <div class="form-text">Leave blank to allow instant unlocking.</div>
+                            <div class="form-text">Leave blank for instant access.</div>
                         </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Search</a>
-                            <button type="submit" class="btn btn-primary px-4">Continue to Gift Link</button>
+                        <div class="col-12 d-flex flex-column-reverse flex-sm-row justify-content-between gap-2 pt-2">
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to search</a>
+                            <button type="submit" class="btn btn-primary px-4">Continue to checkout</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-    </div>
-
-</body>
-</html>
+    </section>
+{% endblock %}

@@ -1,57 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USSD Feature-Phone Simulation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}USSD Simulator | Smart Gifting{% endblock %}
+
+{% block head %}
     <style>
+        .ussd-layout { max-width: 900px; }
         .phone-frame {
-            max-width: 320px;
-            background: #212529;
-            border-radius: 40px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            margin: auto;
+            width: 100%;
+            max-width: 360px;
+            margin-inline: auto;
+            padding: 14px;
+            border: 1px solid #36594a;
+            border-radius: 28px;
+            background: #18372f;
+            box-shadow: 0 18px 38px rgba(24, 55, 47, .2);
         }
-        .screen {
-            background: #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            font-family: monospace;
-            min-height: 200px;
+        .phone-speaker { width: 58px; height: 5px; margin: 0 auto 14px; border-radius: 99px; background: #5a7468; }
+        .phone-screen {
+            min-height: 245px;
+            padding: 18px;
+            border: 1px solid #b9cbb6;
+            border-radius: 12px;
+            background: #e8efdb;
+            color: #1c382d;
+            font-family: "DM Sans", sans-serif;
+            font-size: .95rem;
+            font-weight: 600;
+            line-height: 1.65;
             white-space: pre-line;
-            font-size: 14px;
-            color: #000;
         }
+        .ussd-controls .form-control { border-color: transparent; }
+        .btn-send {
+            border-color: var(--lime);
+            color: var(--ink);
+            background: var(--lime);
+            font-weight: 700;
+        }
+        .btn-send:hover { border-color: #c6e16b; color: var(--ink); background: #c6e16b; }
+        .phone-link { color: #d6e3d8; }
+        .phone-link:hover { color: #fff; }
     </style>
-</head>
-<body class="bg-light">
+{% endblock %}
 
-    <div class="container py-5">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold text-primary">📱 Feature-Phone USSD Simulator</h2>
-            <p class="text-muted">Simulate USSD gifting workflows for users without smartphones (Try typing <code>*123#</code>).</p>
-        </div>
-
-        <div class="phone-frame">
-            <div class="screen mb-3 shadow-inset">
-                {{ response_text if response_text else "Dial *123# to begin..." }}
-            </div>
-
-            <form method="POST">
-                <input type="hidden" name="step" value="{{ step if step else 'home' }}">
-                <div class="input-group mb-2">
-                    <input type="text" class="form-control" name="user_input" placeholder="Enter code / option..." required autofocus>
-                    <button class="btn btn-success fw-bold" type="submit">SEND</button>
+{% block content %}
+    <section class="container ussd-layout py-4 py-md-5">
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-12 col-lg-6">
+                <p class="eyebrow mb-2">Feature-phone experience</p>
+                <h1 class="display-heading mb-3">Gifting, even without an app.</h1>
+                <p class="text-muted fs-5 mb-3">Try the USSD flow to see how a recipient can check for gifts from a basic phone.</p>
+                <div class="surface p-3">
+                    <span class="small text-muted d-block mb-1">Start the session</span>
+                    <code class="fs-5 fw-bold" style="color: var(--leaf-deep);">*123#</code>
                 </div>
-            </form>
-            <div class="text-center mt-2">
-                <a href="{{ url_for('ussd_simulation') }}" class="text-white-50 text-decoration-none small">Reset Session</a> | 
-                <a href="{{ url_for('index') }}" class="text-white-50 text-decoration-none small">Back to App</a>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="phone-frame">
+                    <div class="phone-speaker" aria-hidden="true"></div>
+                    <div class="phone-screen mb-3" aria-live="polite">
+                        {{ response_text if response_text else "Dial *123# to begin..." }}
+                    </div>
+                    <form method="POST" class="ussd-controls">
+                        <input type="hidden" name="step" value="{{ step if step else 'home' }}">
+                        <label for="user_input" class="visually-hidden">Enter a USSD code or menu option</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="user_input" name="user_input" placeholder="Code or option" required autocomplete="off" autofocus>
+                            <button class="btn btn-send" type="submit">Send</button>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between gap-2 mt-3 px-1">
+                        <a href="{{ url_for('ussd_simulation') }}" class="phone-link small text-decoration-none">Reset session</a>
+                        <a href="{{ url_for('index') }}" class="phone-link small text-decoration-none">Back to app</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-</body>
-</html>
+    </section>
+{% endblock %}
