@@ -192,7 +192,7 @@ def claim_gift(gift_token):
 
 @app.route("/ussd", methods=["GET", "POST"])
 def ussd_simulation():
-    """Provide a minimal USSD-style gift lookup experience."""
+    """Simulate USSD: *123# opens the menu, option 1 lists pending gifts, then the session ends."""
     response_text = ""
     step = request.form.get("step", "home")
     user_input = request.form.get("user_input", "").strip()

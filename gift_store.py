@@ -27,7 +27,7 @@ def get_db_connection(db_path: str | os.PathLike | None = None) -> sqlite3.Conne
 
 
 def init_database(db_path: str | os.PathLike | None = None) -> None:
-    """Create the tables used to track pending and active gifts."""
+    """Create persistent draft and active-gift tables without replacing existing data."""
     connection = get_db_connection(db_path)
     cursor = connection.cursor()
     cursor.execute(
@@ -107,7 +107,7 @@ def fetch_pending_gift(session_id: str, db_path=None):
 
 
 def save_active_gift(gift_data: Mapping[str, Any], db_path=None) -> str:
-    """Promote a pending purchase into an active gift and assign an access token."""
+    """Create a shareable gift record with a 24-hour claim window and unique token."""
     gift_token = str(uuid.uuid4())[:8]
     expires_at = datetime.now() + timedelta(hours=24)
     product = gift_data["product"]
@@ -188,7 +188,7 @@ def mark_gift_expired(gift_token: str, db_path=None) -> None:
 
 
 def fetch_active_gifts_for_ussd(db_path=None):
-    """Return a limited set of unclaimed gifts for the USSD listing view."""
+    """Return up to three unclaimed gifts for the feature-phone menu."""
     with get_db_connection(db_path) as connection:
         return connection.execute(
             "SELECT * FROM active_gifts WHERE claimed = 0 LIMIT 3"

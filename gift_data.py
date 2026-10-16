@@ -26,7 +26,7 @@ def load_product_catalog(file_path: str | os.PathLike | None = None) -> pd.DataF
 
 
 def build_recommendation_model(product_df: pd.DataFrame):
-    """Fit the TF-IDF vectorizer and matrix for the supplied product catalogue."""
+    """Fit TF-IDF so shared descriptive words rank products without an external service."""
     vectorizer = TfidfVectorizer(stop_words="english")
     tfidf_matrix = vectorizer.fit_transform(product_df["gift_text"])
     return vectorizer, tfidf_matrix

@@ -48,7 +48,11 @@ def recommend_gifts(
     tfidf_matrix,
     top_n: int = 6,
 ):
-    """Return relevant products, restricting football intent to fan apparel."""
+    """Rank products by text similarity; football intent only returns matching apparel.
+
+    Team names are expanded toward football apparel terms, but never fall back to
+    unrelated products when the catalogue has no suitable match.
+    """
     query_text = (user_query or "").strip()
     if not query_text:
         return []
