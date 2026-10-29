@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <div class="card shadow border-0 rounded-3 p-4">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark"><i class="bi bi-shield-lock-fill text-danger me-2"></i>Cashier Verification Portal</h2>
+            <p class="text-muted">Enter or scan the customer's voucher code to validate and process in-store pickup.</p>
+        </div>
+
+        <form method="POST" class="mb-4">
+            <div class="input-group mb-3">
+                <input type="text" name="voucher_code" class="form-control form-control-lg text-uppercase fw-bold text-center" placeholder="e.g. GIFT-ABC1234" required>
+                <button class="btn btn-dark px-4" type="submit">Verify Code</button>
+            </div>
+        </form>
+
+        {% if voucher %}
+        <div class="card border-{% if voucher.status == 'ACTIVE' %}success{% else %}danger{% endif %} shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title fw-bold">Voucher Details: <code>{{ voucher.voucher_code }}</code></h4>
+                <hr>
+                <p><strong>Merchant:</strong> {{ voucher.merchant_name }}</p>
+                <p><strong>Package:</strong> {{ voucher.product_title }}</p>
+                <p><strong>Monetary Value:</strong> UGX {{ "{:,}".format(voucher.monetary_value) }}</p>
+                <p><strong>Sender:</strong> {{ voucher.sender_name }}</p>
+                <p><strong>Recipient Phone:</strong> {{ voucher.recipient_phone }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-{% if voucher.status == 'ACTIVE' %}success{% else %}secondary{% endif %}">
+                        {{ voucher.status }}
+                    </span>
+                </p>
+
+                {% if voucher.status == 'ACTIVE' %}
+                <form method="POST" class="mt-3">
+                    <input type="hidden" name="voucher_code" value="{{ voucher.voucher_code }}">
+                    <input type="hidden" name="action" value="redeem">
+                    <button type="submit" class="btn btn-danger w-100 btn-lg fw-bold">
+                        <i class="bi bi-check-circle-fill me-2"></i> Mark as Redeemed (Complete Pickup)
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-warning text-center mt-3 mb-0 fw-bold">
+                    ⚠️ Warning: This voucher has already been used or redeemed!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i> Back to Storefront Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

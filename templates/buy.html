@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <div class="card shadow border-0 rounded-3 p-4">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Send Gift</li>
+            </ol>
+        </nav>
+
+        <h2 class="fw-bold text-dark mb-3"><i class="bi bi-gift-fill text-primary me-2"></i>Send Gift Voucher</h2>
+        
+        <div class="alert alert-light border mb-4">
+            <h5 class="fw-bold text-primary mb-1">{{ product.title }}</h5>
+            <p class="text-muted small mb-2">{{ product.description }}</p>
+            <span class="badge bg-success fs-6">Monetary Value: UGX {{ "{:,}".format(product.monetary_value) }}</span>
+        </div>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="sender_name" class="form-label fw-bold">Your Name (Sender)</label>
+                <input type="text" class="form-control" id="sender_name" name="sender_name" placeholder="e.g. David Kato" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="recipient_phone" class="form-label fw-bold">Recipient Phone Number</label>
+                <input type="text" class="form-control" id="recipient_phone" name="recipient_phone" placeholder="e.g. +256770000000" required>
+                <div class="form-text">We will send the voucher access link via SMS to this number.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="message" class="form-label fw-bold">Personal Gift Message</label>
+                <textarea class="form-control" id="message" name="message" rows="3" placeholder="Write a nice note for the recipient..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg fw-bold py-2 mt-2">
+                <i class="bi bi-shield-lock-fill me-1"></i> Confirm & Pay (Simulated Mobile Money)
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
